@@ -1,0 +1,977 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Switch,
+  Alert,
+  StatusBar,
+  Modal,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from '../utils/SafeLinearGradient';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useOrders } from '../context/OrdersContext';
+import { useMenu } from '../context/MenuContext';
+import { useReservation } from '../hooks/useReservation';
+
+export default function ManagerDashboardScreen({ navigation }) {
+  const { user, logout } = useAuth();
+  const { colors, isDark, shadows } = useTheme();
+  const { orders, updateOrderStatus, cancelOrder } = useOrders();
+  const { menuItems, toggleAvailability, updatePrice, addMenuItem } = useMenu();
+  const { reservationsList } = useReservation(user);
+
+  // Active Manager Tab
+  const [activeTab, setActiveTab] = useState('orders'); // 'orders' | 'reservations' | 'menu'
+
+  // Local state for editing prices
+  const [editingPriceId, setEditingPriceId] = useState(null);
+  const [tempPrice, setTempPrice] = useState('');
+
+  // Add Item Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemDesc, setNewItemDesc] = useState('');
+  const [newItemPrice, setNewItemPrice] = useState('');
+  const [newItemCat, setNewItemCat] = useState('Mains');
+  const [newItemSpecial, setNewItemSpecial] = useState(false);
+
+  // Local state for manager reservations actions
+  const [localReservations, setLocalReservations] = useState(reservationsList);
+
+  const handleUpdateStatus = (orderId, nextStatus) => {
+    updateOrderStatus(orderId, nextStatus);
+    Alert.alert('Status Updated', `Order ${orderId} marked as "${nextStatus}".`);
+  };
+
+  const handlePriceSave = (itemId) => {
+    if (!tempPrice || isNaN(tempPrice) || Number(tempPrice) <= 0) {
+      Alert.alert('Invalid Price', 'Please enter a valid numeric price.');
+      return;
+    }
+    updatePrice(itemId, Number(tempPrice));
+    setEditingPriceId(null);
+    setTempPrice('');
+    Alert.alert('Price Updated', 'Menu item price successfully updated.');
+  };
+
+  const handleAddNewItem = () => {
+    if (!newItemName.trim() || !newItemPrice || isNaN(newItemPrice)) {
+      Alert.alert('Incomplete Data', 'Please provide a valid dish name and price.');
+      return;
+    }
+
+    addMenuItem({
+      name: newItemName.trim(),
+      description: newItemDesc.trim() || 'Chef specialty made fresh upon order.',
+      price: Number(newItemPrice),
+      category: newItemCat,
+      isSpecial: newItemSpecial,
+    });
+
+    setShowAddModal(false);
+    setNewItemName('');
+    setNewItemDesc('');
+    setNewItemPrice('');
+    Alert.alert('Dish Added', `${newItemName} is now live on the customer menu!`);
+  };
+
+  const handleReservationAction = (id, newStatus) => {
+    setLocalReservations((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+    );
+    Alert.alert('Reservation Updated', `Booking ${id} has been marked as ${newStatus}.`);
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
+      {/* TOP HEADER */}
+      <View
+        style={[
+          styles.headerCard,
+          { backgroundColor: colors.card, borderColor: colors.cardBorder },
+          shadows.soft,
+        ]}
+      >
+        <View style={styles.headerTopRow}>
+          <View style={styles.titleInfo}>
+            <Text style={[styles.consoleTitle, { color: colors.textPrimary }]}>
+              Kitchen & Operations Console
+            </Text>
+            <Text style={[styles.managerName, { color: colors.primary }]}>
+              Logged in as: {user?.name || 'Chef Tariq'} (Manager)
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CustomerApp', { screen: 'Menu' })}
+            style={[
+              styles.switchViewBtn,
+              { backgroundColor: colors.surfaceSubtle, borderColor: colors.surfaceBorder },
+            ]}
+          >
+            <Ionicons name="eye-outline" size={16} color={colors.textPrimary} />
+            <Text style={[styles.switchViewText, { color: colors.textPrimary }]}>
+              View Menu
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 3 MANAGER TABS (Task 8 requirement) */}
+        <View
+          style={[
+            styles.tabBar,
+            { backgroundColor: colors.surfaceSubtle, borderColor: colors.surfaceBorder },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => setActiveTab('orders')}
+            style={[
+              styles.tabBtn,
+              activeTab === 'orders' && [
+                styles.activeTabBtn,
+                { backgroundColor: colors.surface },
+                shadows.soft,
+              ],
+            ]}
+          >
+            <Ionicons
+              name="fast-food-outline"
+              size={16}
+              color={activeTab === 'orders' ? colors.primary : colors.textMuted}
+            />
+            <Text
+              style={[
+                styles.tabBtnText,
+                { color: activeTab === 'orders' ? colors.primary : colors.textMuted },
+              ]}
+            >
+              Orders ({orders.length})
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab('reservations')}
+            style={[
+              styles.tabBtn,
+              activeTab === 'reservations' && [
+                styles.activeTabBtn,
+                { backgroundColor: colors.surface },
+                shadows.soft,
+              ],
+            ]}
+          >
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={activeTab === 'reservations' ? colors.primary : colors.textMuted}
+            />
+            <Text
+              style={[
+                styles.tabBtnText,
+                { color: activeTab === 'reservations' ? colors.primary : colors.textMuted },
+              ]}
+            >
+              Tables ({localReservations.length})
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab('menu')}
+            style={[
+              styles.tabBtn,
+              activeTab === 'menu' && [
+                styles.activeTabBtn,
+                { backgroundColor: colors.surface },
+                shadows.soft,
+              ],
+            ]}
+          >
+            <Ionicons
+              name="restaurant-outline"
+              size={16}
+              color={activeTab === 'menu' ? colors.primary : colors.textMuted}
+            />
+            <Text
+              style={[
+                styles.tabBtnText,
+                { color: activeTab === 'menu' ? colors.primary : colors.textMuted },
+              ]}
+            >
+              Menu Stock
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ─── TAB 1: INCOMING KITCHEN ORDERS ─────────────────────────────────── */}
+      {activeTab === 'orders' && (
+        <ScrollView
+          contentContainerStyle={styles.scrollList}
+          showsVerticalScrollIndicator={false}
+        >
+          {orders.map((order) => {
+            const isPending = order.status === 'Pending';
+            const isPrep = order.status === 'Preparing';
+            const isReady = order.status === 'Ready';
+            const isServed = order.status === 'Served';
+
+            return (
+              <View
+                key={order.id}
+                style={[
+                  styles.cardItem,
+                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                  shadows.soft,
+                ]}
+              >
+                <View style={styles.cardHeaderRow}>
+                  <View>
+                    <Text style={[styles.orderRef, { color: colors.primary }]}>{order.id}</Text>
+                    <Text style={[styles.customerRef, { color: colors.textPrimary }]}>
+                      Guest: {order.customerName}
+                    </Text>
+                    <Text style={[styles.orderTypeDesc, { color: colors.textSecondary }]}>
+                      {order.type === 'Dine-in'
+                        ? `Dine-in • ${order.tableNumber || 'Table 4'}`
+                        : `Takeaway • ${order.pickupTime || '20 min'}`}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.statusPill,
+                      {
+                        backgroundColor: isServed
+                          ? colors.successBackground
+                          : isReady
+                          ? '#E0F2FE'
+                          : isPrep
+                          ? '#FEF3C7'
+                          : colors.badge,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusPillText,
+                        {
+                          color: isServed
+                            ? colors.success
+                            : isReady
+                            ? '#0284C7'
+                            : isPrep
+                            ? '#D97706'
+                            : colors.badgeText,
+                        },
+                      ]}
+                    >
+                      {order.status}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Items in order */}
+                <View style={[styles.itemsBox, { backgroundColor: colors.surfaceSubtle }]}>
+                  {order.items.map((item, idx) => (
+                    <Text key={idx} style={[styles.itemLine, { color: colors.textPrimary }]}>
+                      • {item.quantity}x {item.name}{' '}
+                      {item.note ? `(Note: "${item.note}")` : ''}
+                    </Text>
+                  ))}
+                  <Text style={[styles.totalAmountText, { color: colors.primary }]}>
+                    Grand Total: Rs. {order.total.toLocaleString()}
+                  </Text>
+                </View>
+
+                {/* Action Buttons to manually change status */}
+                <View style={styles.orderActionsRow}>
+                  {isPending && (
+                    <TouchableOpacity
+                      onPress={() => handleUpdateStatus(order.id, 'Preparing')}
+                      style={[styles.actionBtn, { backgroundColor: colors.secondary }]}
+                    >
+                      <Ionicons name="flame" size={14} color="#FFF" />
+                      <Text style={styles.actionBtnText}>Start Cooking</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {isPrep && (
+                    <TouchableOpacity
+                      onPress={() => handleUpdateStatus(order.id, 'Ready')}
+                      style={[styles.actionBtn, { backgroundColor: '#0284C7' }]}
+                    >
+                      <Ionicons name="checkmark-circle" size={14} color="#FFF" />
+                      <Text style={styles.actionBtnText}>Mark Ready</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {isReady && (
+                    <TouchableOpacity
+                      onPress={() => handleUpdateStatus(order.id, 'Served')}
+                      style={[styles.actionBtn, { backgroundColor: colors.success }]}
+                    >
+                      <Ionicons name="checkmark-done" size={14} color="#FFF" />
+                      <Text style={styles.actionBtnText}>Mark Served</Text>
+                    </TouchableOpacity>
+                  )}
+
+                  <TouchableOpacity
+                    onPress={() => cancelOrder(order.id)}
+                    style={[styles.cancelBtn, { borderColor: colors.error + '40' }]}
+                  >
+                    <Text style={[styles.cancelBtnText, { color: colors.error }]}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {/* ─── TAB 2: TABLE RESERVATIONS ─────────────────────────────────────── */}
+      {activeTab === 'reservations' && (
+        <ScrollView
+          contentContainerStyle={styles.scrollList}
+          showsVerticalScrollIndicator={false}
+        >
+          {localReservations.map((booking) => (
+            <View
+              key={booking.id}
+              style={[
+                styles.cardItem,
+                { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                shadows.soft,
+              ]}
+            >
+              <View style={styles.cardHeaderRow}>
+                <View>
+                  <Text style={[styles.orderRef, { color: colors.primary }]}>{booking.id}</Text>
+                  <Text style={[styles.customerRef, { color: colors.textPrimary }]}>
+                    {booking.customerName} ({booking.phone})
+                  </Text>
+                  <Text style={[styles.orderTypeDesc, { color: colors.textSecondary }]}>
+                    {booking.date} at {booking.timeSlot} • {booking.partySize} Guests
+                  </Text>
+                  <Text style={[styles.orderTypeDesc, { color: colors.textPrimary }]}>
+                    Table: {booking.tableName}
+                  </Text>
+                </View>
+
+                <View
+                  style={[
+                    styles.statusPill,
+                    {
+                      backgroundColor:
+                        booking.status === 'Confirmed'
+                          ? colors.successBackground
+                          : colors.errorBackground,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusPillText,
+                      {
+                        color:
+                          booking.status === 'Confirmed' ? colors.success : colors.error,
+                      },
+                    ]}
+                  >
+                    {booking.status}
+                  </Text>
+                </View>
+              </View>
+
+              {booking.specialRequests ? (
+                <Text style={[styles.specialReqNote, { color: colors.textMuted }]}>
+                  Special Note: "{booking.specialRequests}"
+                </Text>
+              ) : null}
+
+              {/* Accept / Decline actions */}
+              <View style={styles.orderActionsRow}>
+                <TouchableOpacity
+                  onPress={() => handleReservationAction(booking.id, 'Confirmed')}
+                  style={[styles.actionBtn, { backgroundColor: colors.success }]}
+                >
+                  <Ionicons name="checkmark" size={14} color="#FFF" />
+                  <Text style={styles.actionBtnText}>Confirm Table</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleReservationAction(booking.id, 'Declined')}
+                  style={[styles.actionBtn, { backgroundColor: colors.error }]}
+                >
+                  <Ionicons name="close" size={14} color="#FFF" />
+                  <Text style={styles.actionBtnText}>Decline</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
+      {/* ─── TAB 3: MENU INVENTORY MANAGEMENT ──────────────────────────────── */}
+      {activeTab === 'menu' && (
+        <ScrollView
+          contentContainerStyle={styles.scrollList}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Add New Dish Button */}
+          <TouchableOpacity
+            onPress={() => setShowAddModal(true)}
+            style={[styles.addNewItemBtn, shadows.button3D]}
+          >
+            <LinearGradient
+              colors={[colors.gradientStart, colors.gradientEnd]}
+              style={styles.addNewItemGradient}
+            >
+              <Ionicons name="add-circle-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.addNewItemText}>Add New Gourmet Dish</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {menuItems.map((item) => {
+            const isEditing = editingPriceId === item.id;
+
+            return (
+              <View
+                key={item.id}
+                style={[
+                  styles.cardItem,
+                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                  shadows.soft,
+                ]}
+              >
+                <View style={styles.menuItemHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.dishName, { color: colors.textPrimary }]}>
+                      {item.name}
+                    </Text>
+                    <Text style={[styles.dishCat, { color: colors.textMuted }]}>
+                      Category: {item.category}
+                    </Text>
+                  </View>
+
+                  {/* Availability Toggle Switch */}
+                  <View style={styles.availToggleBox}>
+                    <Text
+                      style={[
+                        styles.availLabel,
+                        { color: item.isAvailable ? colors.success : colors.error },
+                      ]}
+                    >
+                      {item.isAvailable ? 'In Stock' : 'Sold Out'}
+                    </Text>
+                    <Switch
+                      value={item.isAvailable}
+                      onValueChange={() => toggleAvailability(item.id)}
+                      trackColor={{ false: '#D1C4B8', true: colors.success }}
+                    />
+                  </View>
+                </View>
+
+                {/* Price Display & Edit */}
+                <View style={styles.priceRow}>
+                  {isEditing ? (
+                    <View style={styles.priceEditRow}>
+                      <TextInput
+                        style={[
+                          styles.priceInput,
+                          {
+                            backgroundColor: colors.inputBackground,
+                            borderColor: colors.primary,
+                            color: colors.textPrimary,
+                          },
+                        ]}
+                        value={tempPrice}
+                        onChangeText={setTempPrice}
+                        keyboardType="numeric"
+                        placeholder="New Price"
+                        placeholderTextColor={colors.textMuted}
+                      />
+                      <TouchableOpacity
+                        onPress={() => handlePriceSave(item.id)}
+                        style={[styles.savePriceBtn, { backgroundColor: colors.primary }]}
+                      >
+                        <Text style={styles.savePriceText}>Save</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => setEditingPriceId(null)}
+                        style={styles.cancelPriceBtn}
+                      >
+                        <Text style={[styles.cancelPriceText, { color: colors.textMuted }]}>
+                          Cancel
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.priceDisplayRow}>
+                      <Text style={[styles.currentPrice, { color: colors.primary }]}>
+                        Price: Rs. {item.price.toLocaleString()}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setEditingPriceId(item.id);
+                          setTempPrice(String(item.price));
+                        }}
+                        style={[
+                          styles.editPriceBtn,
+                          {
+                            backgroundColor: colors.surfaceSubtle,
+                            borderColor: colors.surfaceBorder,
+                          },
+                        ]}
+                      >
+                        <Ionicons name="pencil" size={13} color={colors.primary} />
+                        <Text style={[styles.editPriceText, { color: colors.primary }]}>
+                          Edit Price
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {/* ADD ITEM MODAL */}
+      <Modal
+        visible={showAddModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View
+            style={[
+              styles.modalCard,
+              { backgroundColor: colors.card, borderColor: colors.cardBorder },
+              shadows.deep3D,
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              Add New Gourmet Creation
+            </Text>
+
+            <TextInput
+              style={[
+                styles.modalInput,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                },
+              ]}
+              placeholder="Dish Name (e.g. Lobster Thermidor)"
+              placeholderTextColor={colors.textMuted}
+              value={newItemName}
+              onChangeText={setNewItemName}
+            />
+
+            <TextInput
+              style={[
+                styles.modalInput,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                },
+              ]}
+              placeholder="Price in Rs. (e.g. 2950)"
+              placeholderTextColor={colors.textMuted}
+              value={newItemPrice}
+              onChangeText={setNewItemPrice}
+              keyboardType="numeric"
+            />
+
+            <TextInput
+              style={[
+                styles.modalInput,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                  minHeight: 60,
+                },
+              ]}
+              placeholder="Description of ingredients & preparation..."
+              placeholderTextColor={colors.textMuted}
+              value={newItemDesc}
+              onChangeText={setNewItemDesc}
+              multiline
+            />
+
+            {/* Category Picker */}
+            <View style={styles.catPickerRow}>
+              {['Starters', 'Mains', 'Desserts', 'Drinks'].map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  onPress={() => setNewItemCat(cat)}
+                  style={[
+                    styles.catChoiceBtn,
+                    {
+                      backgroundColor:
+                        newItemCat === cat ? colors.primary : colors.surfaceSubtle,
+                      borderColor:
+                        newItemCat === cat ? colors.primary : colors.surfaceBorder,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.catChoiceText,
+                      { color: newItemCat === cat ? '#FFFFFF' : colors.textSecondary },
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setShowAddModal(false)}
+                style={[
+                  styles.modalCancel,
+                  { backgroundColor: colors.surfaceSubtle, borderColor: colors.surfaceBorder },
+                ]}
+              >
+                <Text style={{ color: colors.textSecondary, fontWeight: '700' }}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleAddNewItem}
+                style={[styles.modalSubmit, { backgroundColor: colors.primary }]}
+              >
+                <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>Publish Dish</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  headerCard: {
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  titleInfo: {
+    flex: 1,
+  },
+  consoleTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  managerName: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  switchViewBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 6,
+  },
+  switchViewText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 4,
+    gap: 6,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 4,
+  },
+  activeTabBtn: {},
+  tabBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  scrollList: {
+    width: '100%',
+    maxWidth: 580,
+    alignSelf: 'center',
+    padding: 16,
+    paddingBottom: 40,
+  },
+  cardItem: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 14,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  orderRef: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  customerRef: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  orderTypeDesc: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  statusPill: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  itemsBox: {
+    borderRadius: 10,
+    padding: 10,
+    marginVertical: 10,
+  },
+  itemLine: {
+    fontSize: 13,
+    marginBottom: 3,
+  },
+  totalAmountText: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(150, 150, 150, 0.1)',
+    paddingTop: 4,
+  },
+  orderActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 4,
+  },
+  actionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  cancelBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  cancelBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  specialReqNote: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  addNewItemBtn: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  addNewItemGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 8,
+  },
+  addNewItemText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  menuItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dishName: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  dishCat: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  availToggleBox: {
+    alignItems: 'flex-end',
+  },
+  availLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  priceRow: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(150, 150, 150, 0.1)',
+  },
+  priceDisplayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  currentPrice: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  editPriceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  editPriceText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  priceEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  priceInput: {
+    width: 100,
+    height: 36,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    fontSize: 13,
+  },
+  savePriceBtn: {
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  savePriceText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  cancelPriceBtn: {
+    padding: 6,
+  },
+  cancelPriceText: {
+    fontSize: 12,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 14,
+  },
+  modalInput: {
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    fontSize: 13,
+    marginBottom: 10,
+  },
+  catPickerRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginVertical: 10,
+  },
+  catChoiceBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  catChoiceText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  modalCancel: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  modalSubmit: {
+    flex: 1.2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+});
