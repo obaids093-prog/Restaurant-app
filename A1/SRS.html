@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Software Requirements Specification (SRS) - Restaurant App MVP</title>
+<style>
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; line-height: 1.6; color: #2d1b00; margin: 40px auto; max-width: 900px; padding: 20px; }
+  h1 { color: #bf360c; border-bottom: 3px solid #e65100; padding-bottom: 8px; margin-top: 30px; font-size: 22pt; font-weight: 800; }
+  h2 { color: #d84315; border-bottom: 1.5px solid #ffb74d; padding-bottom: 4px; margin-top: 24px; font-size: 15pt; font-weight: 700; }
+  h3 { color: #e65100; margin-top: 18px; font-size: 13pt; font-weight: 700; }
+  h4 { color: #f57c00; margin-top: 14px; font-size: 11pt; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 9.5pt; }
+  th, td { border: 1px solid #fed7aa; padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background-color: #fff7ed; color: #9a3412; font-weight: 700; border-bottom: 2px solid #ea580c; }
+  tr:nth-child(even) { background-color: #fffaf5; }
+  code { background: #fff7ed; padding: 2px 6px; border-radius: 4px; font-family: Consolas, monospace; font-size: 9pt; color: #c2410c; border: 1px solid #ffedd5; }
+  li { margin-bottom: 4px; }
+  hr { border: 0; border-top: 1.5px solid #fed7aa; margin: 24px 0; }
+  strong { color: #7c2d12; }
+  @page { margin: 20mm; size: A4 portrait; }
+  @media print {
+    body { margin: 0; max-width: 100%; padding: 0; color: #1e140a; }
+    h1, h2 { page-break-after: avoid; }
+    table, tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<h1>Software Requirements Specification (SRS)</h1>
+<h2>Restaurant App MVP (Frontend Only, React Native)</h2>
+<p><strong>Document Version:</strong> 1.0.0  </p>
+<p><strong>Academic Term:</strong> Fall 2026  </p>
+<p><strong>Course:</strong> Mobile Application Development (CS-3112 / SE-3112)  </p>
+<p><strong>Deliverable:</strong> Question 1 — Comprehensive System Specification  </p>
+<br/>
+<hr/>
+<br/>
+<h2>Executive Summary &amp; Client Interview</h2>
+<p>To ground the requirements in real-world human experience, a preliminary client self-interview was conducted from both Customer and Restaurant Manager perspectives:</p>
+<li><strong>The Customer Persona:</strong> <em>"I often face tight schedules and long queues during lunch and dinner rushes. When dining out, I need to browse current menu prices and specials, check real-time table availability, and customize my order in advance so my food is prepped when I arrive."</em></li>
+<li><strong>The Manager Persona:</strong> <em>"Handling telephone orders during peak meal service leads to miscommunication, incorrect notes, and chaotic kitchen queues. We require a digitized visual console to oversee incoming orders, manage table confirmations, and update item availability and pricing instantly without downtime."</em></li>
+<br/>
+<hr/>
+<br/>
+<h2>1. Introduction</h2>
+<br/>
+<h3>1.1. Purpose</h3>
+<p>This Software Requirements Specification (SRS) details the complete functional and non-functional requirements for the <strong>Restaurant App MVP (Gourmet Haven)</strong>. The target audience includes academic evaluators, mobile software engineers, UI/UX designers, and quality assurance testers. This specification strictly reflects a frontend-only architecture powered by React Native and Expo SDK, utilizing local state machines and simulated persistence without a physical backend server.</p>
+<br/>
+<h3>1.2. Scope</h3>
+<h4>In-Scope Functionalities:</h4>
+<li><strong>Authentication & Role Authorization:</strong> Dual-mode authentication (Customer & Manager) utilizing mock user registries and session storage.</li>
+<li><strong>Interactive Menu Catalog:</strong> Categorized menu browsing (Starters, Mains, Desserts, Drinks) with simulated network delay, pull-to-refresh, dynamic item counting, and daily special badges.</li>
+<li><strong>Optimized Search & Filter Controls:</strong> Real-time text search with 400ms debouncing, search history suggestions, category filtering, multi-criteria sorting, and a 300px threshold "Back to top" floating button.</li>
+<li><strong>Adaptive Theming:</strong> System-wide dark and light mode toggle using custom React Context, providing instant palette transformation.</li>
+<li><strong>Cart & Order Customization:</strong> Pure reducer-driven cart supporting quantity increments/decrements, item-level dietary instructions, promotional voucher discounts (<code>WELCOME10</code>, <code>FEAST20</code>), and real-time tab badge indicators.</li>
+<li><strong>Financial Calculation & Performance Optimization:</strong> Subtotal, service charges (5%), and sales tax (15%) calculated via memoized formulas; food card re-renders optimized via <code>React.memo</code> and <code>useCallback</code>.</li>
+<li><strong>Table Reservation System:</strong> Custom hook-based booking pipeline featuring slot conflict detection (12:00 to 22:00), party capacity checks (1–12 guests), Pakistani phone format validation (<code>03XX-XXXXXXX</code>), and reservation cancellations.</li>
+<li><strong>Live Order Progression & Manager Operations:</strong> Dine-in vs. Takeaway checkout, timed status progression (10s Preparing ➔ 20s Ready ➔ 30s Served), live elapsed timer, and a dedicated 3-tab Manager Dashboard for queue management, reservation approvals, and real-time menu CRUD.</li>
+<br/>
+<h4>Out-of-Scope (Excluded from MVP):</h4>
+<li><strong>Live Payment Gateway:</strong> No real credit card or third-party payment processing (Stripe, JazzCash, EasyPaisa).</li>
+<li><strong>Native Push Notifications:</strong> Apple APNs or Google FCM remote push notification daemons are excluded.</li>
+<li><strong>Remote Backend & Persistent Relational Database:</strong> No remote REST/GraphQL microservices, Node.js server, Firebase, or cloud SQL databases.</li>
+<li><strong>Hardware Geolocation / GPS Tracking:</strong> Real-time courier dispatch and GPS map rendering are excluded.</li>
+<br/>
+<h3>1.3. Definitions, Acronyms, and Abbreviations</h3>
+<li><strong>SRS (Software Requirements Specification):</strong> A structured document outlining functional capabilities, constraints, and architecture of a software product.</li>
+<li><strong>MVP (Minimum Viable Product):</strong> A version of a software product with sufficient core features to validate requirements and usability.</li>
+<li><strong>UML (Unified Modeling Language):</strong> Standardized visual modeling language used to visualize, specify, and document software system artifacts.</li>
+<li><strong>React Hook:</strong> Special JavaScript functions (e.g., <code>useState</code>, <code>useEffect</code>, <code>useRef</code>) enabling functional components to manage state and lifecycle events.</li>
+<li><strong>Context API:</strong> React engine feature facilitating global state propagation across deeply nested component trees without manual prop drilling.</li>
+<li><strong>Pure Reducer:</strong> A deterministic function <code>(state, action) => newState</code> that calculates subsequent application state without mutating original inputs or causing side effects.</li>
+<li><strong>Mock Data:</strong> Localized JSON or JavaScript data structures simulating realistic database entities for standalone frontend development.</li>
+<li><strong>FlatList:</strong> A memory-efficient React Native component that virtualizes and renders only currently visible items within large scrollable datasets.</li>
+<li><strong>Debounce:</strong> A software design technique that restricts the execution of a computationally expensive task until a specified duration of inactivity has elapsed.</li>
+<li><strong>Immutable State:</strong> An architectural paradigm where data objects cannot be modified post-creation; state transitions always yield fresh object references.</li>
+<br/>
+<hr/>
+<br/>
+<h2>2. Overall Description</h2>
+<br/>
+<h3>2.1. User Roles &amp; Personas</h3>
+<table><thead><tr><th>Role</th><th>Description</th><th>Key Permissions & Goals</th></tr></thead><tbody>
+<tr><td><strong>Customer (Diner)</strong></td><td>Registered or guest patron seeking culinary browsing, ordering, and dining reservations.</td><td>• Browse categorized menu items and daily specials.<br/>• Search with instant debouncing and sorting.<br/>• Customize cart items with chef instructions.<br/>• Apply promotional discount vouchers.<br/>• Book and cancel table reservations.<br/>• Place Dine-in / Takeaway orders and monitor live kitchen progress.<br/>• Toggle dark/light luxury UI themes.</td></tr>
+<tr><td><strong>Restaurant Manager (Staff)</strong></td><td>Administrative culinary supervisor overseeing restaurant floor and kitchen throughput.</td><td>• Access the secured Manager Operations Console.<br/>• Monitor live incoming kitchen orders and advance status stages manually.<br/>• Review pending table reservations, accepting or declining bookings.<br/>• Update item prices, toggle dish availability, and introduce new menu items with instant sync across customer screens.</td></tr>
+</tbody></table>
+<br/>
+<h3>2.2. User Stories</h3>
+<h4>Customer User Stories (Derived from Client Meeting / Self-Interview):</h4>
+<li><strong>US-01 (Menu Discovery):</strong> <em>As a Customer</em>, I want to view dishes categorized into Starters, Mains, Desserts, and Drinks with appetizing images and prices, so that I can quickly decide what to eat.</li>
+<li><strong>US-02 (Daily Specials):</strong> <em>As a Customer</em>, I want chef specials clearly highlighted with distinctive badges, so that I can discover unique seasonal recommendations.</li>
+<li><strong>US-03 (Instant Search):</strong> <em>As a Customer</em>, I want a fast, debounced search bar with recent search history chips, so that I can find my favorite meals without re-typing.</li>
+<li><strong>US-04 (Dietary Customization):</strong> <em>As a Customer</em>, I want to attach per-item special instructions (e.g., "no onions", "extra spicy") to dishes in my cart, so that the kitchen prepares my food according to my preferences.</li>
+<li><strong>US-05 (Promotional Vouchers):</strong> <em>As a Customer</em>, I want to enter promo codes (such as <code>WELCOME10</code> or <code>FEAST20</code>) during checkout, so that I receive discounts on my total bill.</li>
+<li><strong>US-06 (Advance Table Booking):</strong> <em>As a Customer</em>, I want to reserve a table for a specific date, hourly slot, and party size with automated capacity validation, so that I don't face waiting lines upon arrival.</li>
+<li><strong>US-07 (Live Order Progress):</strong> <em>As a Customer</em>, I want to track my order through an automated progress timeline with elapsed seconds, so that I know exactly when my food is preparing, ready, or served.</li>
+<br/>
+<h4>Restaurant Manager User Stories:</h4>
+<li><strong>US-08 (Kitchen Queue Progression):</strong> <em>As a Restaurant Manager</em>, I want a real-time incoming orders dashboard where I can advance kitchen tickets from Pending to Preparing, Ready, and Served, so that order delivery remains synchronized.</li>
+<li><strong>US-09 (Reservation Management):</strong> <em>As a Restaurant Manager</em>, I want to review incoming dining reservations and explicitly Accept or Decline them based on restaurant floor capacity, so that tables are never overbooked.</li>
+<li><strong>US-10 (Live Menu CRUD & Availability):</strong> <em>As a Restaurant Manager</em>, I want to adjust menu item prices and toggle out-of-stock items off in real-time, so that customers cannot order unavailable ingredients.</li>
+<li><strong>US-11 (Role-Restricted Console):</strong> <em>As a Restaurant Manager</em>, I want management tabs to be completely hidden from ordinary diner profiles, so that sensitive administrative actions remain secure.</li>
+<li><strong>US-12 (Theme Personalization):</strong> <em>As a Customer or Manager</em>, I want to toggle between obsidian dark and warm amber light themes, so that I can comfortably use the app in varying ambient lighting.</li>
+<br/>
+<hr/>
+<br/>
+<h2>3. Functional Requirements</h2>
+<br/>
+<h3>Module 1: Authentication &amp; Authorization</h3>
+<li><strong>FR-01:</strong> The system shall toggle between Login and Signup modes using a controlled mode state variable on a single interactive screen.</li>
+<li><strong>FR-02:</strong> The system shall validate email syntax, enforce password complexity (minimum 8 characters with at least one numerical digit), and confirm matching passwords prior to submission.</li>
+<li><strong>FR-03:</strong> The system shall clear validation error indicators immediately when a user modifies the text within an erroneous input field.</li>
+<li><strong>FR-04:</strong> The system shall authenticate user credentials against a local mock user registry, simulating a 1000ms network delay with an active loading spinner and disabled submit button.</li>
+<li><strong>FR-05:</strong> The system shall route authenticated Customer users to the main Menu screen and Manager users directly to the Manager Dashboard.</li>
+<br/>
+<h3>Module 2: Menu Browsing &amp; Catalog</h3>
+<li><strong>FR-06:</strong> The system shall asynchronously load at least 15 menu items spanning 4 distinct categories (Starters, Mains, Desserts, Drinks) using a simulated 1.5-second Promise with unmount cancellation.</li>
+<li><strong>FR-07:</strong> The system shall present horizontal category filtering chips allowing patrons to view items by specific course or all items simultaneously.</li>
+<li><strong>FR-08:</strong> The system shall render catalog items in an optimized <code>FlatList</code>, displaying distinct "Daily Special" badges and greying out unavailable dishes with disabled action buttons.</li>
+<li><strong>FR-09:</strong> The system shall implement pull-to-refresh functionality, re-executing the menu fetch workflow and updating the total displayed item count in the header.</li>
+<br/>
+<h3>Module 3: Search, Filter &amp; Scroll Optimization</h3>
+<li><strong>FR-10:</strong> The system shall provide an interactive search bar with a persistent <code>useRef</code> focus trigger and a 1-tap clear button that resets input without losing cursor focus.</li>
+<li><strong>FR-11:</strong> The system shall debounce search queries by 400 milliseconds, eliminating redundant filtering calculations during active typing.</li>
+<li><strong>FR-12:</strong> The system shall present the last five unique search queries as tappable suggestions when the search bar is focused.</li>
+<li><strong>FR-13:</strong> The system shall display a floating "Back to top" button when the list is scrolled past 300 vertical pixels, invoking <code>scrollToOffset({ offset: 0, animated: true })</code>.</li>
+<li><strong>FR-14:</strong> The system shall display a friendly empty state message whenever no catalog items match active search queries or category filters.</li>
+<br/>
+<h3>Module 4: Shopping Cart &amp; Reducer State</h3>
+<li><strong>FR-15:</strong> The system shall manage cart operations through a pure <code>cartReducer</code> handling <code>ADD_ITEM</code>, <code>REMOVE_ITEM</code>, <code>INCREMENT</code>, <code>DECREMENT</code> (auto-removing at quantity zero), <code>UPDATE_NOTE</code>, <code>CLEAR_CART</code>, <code>APPLY_PROMO</code>, and <code>REMOVE_PROMO</code>.</li>
+<li><strong>FR-16:</strong> The system shall validate promotional discount vouchers (<code>WELCOME10</code> for 10% off, <code>FEAST20</code> for 20% off), rejecting unlisted codes with informative error notifications.</li>
+<li><strong>FR-17:</strong> The system shall update a live badge indicator on the bottom navigation tab icon reflecting the total cumulative item count in the tray.</li>
+<br/>
+<h3>Module 5: Order Summary &amp; Financial Calculation</h3>
+<li><strong>FR-18:</strong> The system shall compute Subtotal, Service Charge (5%), Provincial Sales Tax (15%), Promotional Discounts, and Grand Total using pure memoized expressions derived from cart items.</li>
+<li><strong>FR-19:</strong> The system shall support both Dine-in (with table assignment) and Takeaway (with designated pickup time) dining modes.</li>
+<br/>
+<h3>Module 6: Table Reservation Pipeline</h3>
+<li><strong>FR-20:</strong> The system shall provide hourly reservation slots between 12:00 and 22:00, disabling slots when restaurant capacity is exhausted.</li>
+<li><strong>FR-21:</strong> The system shall validate reservation parameters, ensuring dates are not in the past, party sizes range from 1 to 12 guests, lead time is at least 1 hour, and contact numbers conform to Pakistani mobile formatting (<code>03XX-XXXXXXX</code>).</li>
+<li><strong>FR-22:</strong> The system shall present a booking confirmation modal prior to committing a reservation, and permit patrons to cancel existing reservations with an Alert dialog confirmation.</li>
+<br/>
+<h3>Module 7: Live Order Tracking &amp; Manager Dashboard</h3>
+<li><strong>FR-23:</strong> The system shall provide an Order Tracking screen that automatically transitions ticket status from <code>Pending</code> ➔ <code>Preparing</code> (10s) ➔ <code>Ready</code> (20s) ➔ <code>Served</code> (30s) while rendering a real-time elapsed counter that updates every second.</li>
+<li><strong>FR-24:</strong> The system shall provide a Manager Dashboard featuring three dedicated operational views: (a) Incoming Orders queue with manual status overrides, (b) Table Reservation approvals/declines, and (c) Live Menu Management (item creation, price edits, availability toggles).</li>
+<li><strong>FR-25:</strong> The system shall synchronize menu modifications and order status transitions instantly across Manager and Customer views via shared Context providers and persistent local storage.</li>
+<br/>
+<hr/>
+<br/>
+<h2>4. Non-Functional Requirements</h2>
+<br/>
+<li><strong>NFR-01 (Usability & Aesthetics):</strong> The application shall follow luxury dining design aesthetics, using custom warm culinary amber and obsidian color palettes, 16px touch targets, smooth 3D button animations, and high-contrast typography.</li>
+<li><strong>NFR-02 (Performance & 60 FPS Scrolling):</strong> Heavy list cards (<code>MenuItemCard</code>) shall be memoized using <code>React.memo</code> and stable <code>useCallback</code> action references. Toggling an item's favorite state shall re-render only the target card.</li>
+<li><strong>NFR-03 (Responsiveness):</strong> UI layouts shall dynamically adapt across standard mobile phone viewports (360px to 480px width) and tablet form factors, utilizing flexible percentages, <code>Dimensions</code> listeners, and <code>SafeAreaProvider</code>.</li>
+<li><strong>NFR-04 (Maintainability & Clean Architecture):</strong> Source code shall strictly adhere to modular separation under <code>src/</code> (components, screens, context, reducers, hooks, data, navigation, theme).</li>
+<li><strong>NFR-05 (Client-Side Data Integrity):</strong> The application shall execute without external server dependencies, persisting key user sessions, custom menu items, orders, and reservations across app restarts via <code>safeStorage</code> (in-memory + AsyncStorage fallback).</li>
+<li><strong>NFR-06 (Memory Leak Prevention):</strong> Every asynchronous timer (<code>setTimeout</code>, <code>setInterval</code>) across loading screens and order tracking steppers shall include explicit cleanup functions executed upon component unmount.</li>
+<br/>
+<hr/>
+<br/>
+<h2>5. Client-Side Data Model (Mock Data Schema)</h2>
+<br/>
+<table><thead><tr><th>Data Set Name</th><th>Primary Fields & Data Types</th><th>Description & Business Purpose</th></tr></thead><tbody>
+<tr><td><strong>Users</strong></td><td><code>id</code> (String), <code>name</code> (String), <code>email</code> (String), <code>password</code> (String), <code>role</code> ('customer' \</td><td>'manager'), <code>phone</code> (String), <code>avatar</code> (String)</td><td>Stores patron and restaurant staff profiles used for authentication and role-based routing.</td></tr>
+<tr><td><strong>Categories</strong></td><td><code>id</code> (String), <code>name</code> (String), <code>icon</code> (String)</td><td>Enumerates the 4 culinary courses: Starters, Mains, Desserts, and Drinks.</td></tr>
+<tr><td><strong>MenuItems</strong></td><td><code>id</code> (String), <code>name</code> (String), <code>description</code> (String), <code>price</code> (Number), <code>category</code> (String), <code>image</code> (String), <code>isSpecial</code> (Boolean), <code>isAvailable</code> (Boolean), <code>prepTime</code> (String), <code>rating</code> (Number)</td><td>Catalog of gourmet dishes available for order; editable in real-time by kitchen managers.</td></tr>
+<tr><td><strong>Tables</strong></td><td><code>id</code> (String), <code>number</code> (Number), <code>capacity</code> (Number), <code>location</code> ('Indoor' \</td><td>'Patio' \</td><td>'Rooftop'), <code>isOccupied</code> (Boolean)</td><td>Physical dining tables used for seating assignment and party size matching.</td></tr>
+<tr><td><strong>Reservations</strong></td><td><code>id</code> (String), <code>customerName</code> (String), <code>customerPhone</code> (String), <code>partySize</code> (Number), <code>date</code> (String), <code>timeSlot</code> (String), <code>tableId</code> (String), <code>status</code> ('confirmed' \</td><td>'pending' \</td><td>'declined' \</td><td>'cancelled'), <code>createdAt</code> (String)</td><td>Table bookings made by customers; reviewed and actioned by restaurant managers.</td></tr>
+<tr><td><strong>Orders</strong></td><td><code>id</code> (String), <code>userId</code> (String), <code>customerName</code> (String), <code>items</code> (Array of CartItem), <code>subtotal</code> (Number), <code>serviceCharge</code> (Number), <code>tax</code> (Number), <code>discount</code> (Number), <code>total</code> (Number), <code>orderType</code> ('dine-in' \</td><td>'takeaway'), <code>tableNumber</code> (Number/null), <code>status</code> ('Pending' \</td><td>'Preparing' \</td><td>'Ready' \</td><td>'Served' \</td><td>'Cancelled'), <code>timestamp</code> (String)</td><td>Active culinary orders dispatched from checkout, tracked live by patrons and updated by staff.</td></tr>
+</tbody></table>
+<br/>
+<hr/>
+<br/>
+<h2>6. UML Architectural Diagrams &amp; Summaries</h2>
+<br/>
+<h3>6.1. Use Case Diagram</h3>
+<li><strong>Caption:</strong> Figure 6.1 — Gourmet Haven Use Case Diagram (Actors: Customer & Restaurant Manager).</li>
+<li><strong>Architectural Explanation:</strong> The use case diagram models interactions between the primary actors (Customer and Restaurant Manager) and the system boundaries. The Customer interacts with 8 core use cases including Menu Discovery, Search & Filter, Cart Customization, Table Reservation, and Order Placement. The <code>Place Order</code> use case demonstrates an <code><<include>></code> relationship with <code>Calculate Totals</code> and an <code><<extend>></code> relationship with <code>Apply Promo Code</code>. The Restaurant Manager oversees kitchen workflows through <code>Manage Incoming Orders</code>, <code>Review Reservations</code>, and <code>Update Menu Catalog</code>.</li>
+<br/>
+<h3>6.2. Class / Domain Model Diagram</h3>
+<li><strong>Caption:</strong> Figure 6.2 — Object-Oriented Domain Model & Class Relationships.</li>
+<li><strong>Architectural Explanation:</strong> The domain model represents system entities and structural multiplicities. The base class <code>User</code> is specialized into <code>Customer</code> and <code>Manager</code>. A <code>Customer</code> aggregates one <code>Cart</code>, which holds 0..* <code>CartItem</code> instances referencing <code>MenuItem</code> objects. An <code>Order</code> is generated from a <code>Cart</code>, encapsulating financial computations and referencing an optional <code>Table</code>. Tables maintain a 1-to-many relationship with <code>Reservations</code>. All methods adhere to encapsulation and type safety.</li>
+<br/>
+<h3>6.3. Sequence Diagram (Customer Places an Order)</h3>
+<li><strong>Caption:</strong> Figure 6.3 — End-to-End Sequence Diagram for Order Placement.</li>
+<li><strong>Architectural Explanation:</strong> Traces the chronological message exchanges between <code>Customer</code>, <code>MenuScreen</code>, <code>CartScreen</code>, <code>cartReducer</code>, <code>OrdersContext</code>, and <code>OrderTrackingScreen</code>. When a diner taps "Add to Cart", a dispatch invokes <code>ADD_ITEM</code>. In <code>OrderSummaryScreen</code>, the diner selects dining mode and confirms checkout. <code>OrdersContext</code> instantiates an order record, clears the cart via <code>CLEAR_CART</code>, and navigates the patron to <code>OrderTrackingScreen</code> where interval timers initiate live status progression.</li>
+<br/>
+<h3>6.4. State Machine Diagram (Order Lifecycle)</h3>
+<li><strong>Caption:</strong> Figure 6.4 — Finite State Machine for Culinary Order Lifecycle.</li>
+<li><strong>Architectural Explanation:</strong> Illustrates the discrete lifecycle states of an order: <code>Pending</code> ➔ <code>Preparing</code> ➔ <code>Ready</code> ➔ <code>Served</code>. Secondary branch transitions include cancellation to <code>Cancelled</code> from <code>Pending</code> state. Transitions are triggered either by automated interval timers (10s, 20s, 30s) or manual manager status override events from the Operations Console.</li>
+<br/>
+<h3>6.5. Component Diagram (React Native Architecture)</h3>
+<li><strong>Caption:</strong> Figure 6.5 — React Native Component & Context Dependency Diagram.</li>
+<li><strong>Architectural Explanation:</strong> Shows the modular frontend architecture. The root <code>AppNavigator</code> encapsulates <code>SafeAreaProvider</code> and 5 Context Providers (<code>ThemeProvider</code>, <code>AuthProvider</code>, <code>MenuProvider</code>, <code>CartProvider</code>, <code>OrdersProvider</code>). Screens consume contexts via specialized custom hooks (<code>useTheme</code>, <code>useAuth</code>, <code>useCart</code>, <code>useOrders</code>, <code>useReservation</code>). Subordinate presentation components such as <code>MenuItemCard</code> are decoupled and optimized with <code>React.memo</code>.</li>
+<br/>
+<hr/>
+<br/>
+<h2>7. MVP Frontend Development (React Native Screen Specifications)</h2>
+<br/>
+<h3>7.1. Login and Signup Screen (<code>LoginScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> Single-screen authentication portal with 3D animated flip transitions for login and registration.</li>
+<li><strong>UI Elements:</strong> Mode toggle pills, controlled text inputs for Name, Email, Password, Confirm Password, eye password toggles, 3D submit button, quick-fill demo profile chips.</li>
+<li><strong>Navigation Entry & Exit:</strong> Entry point of the app; on customer login/signup navigates to <code>CustomerApp (Menu)</code>, on manager login navigates to <code>ManagerDashboard</code>.</li>
+<li><strong>Local Data & State:</strong> <code>mode</code> ('login' \| 'signup'), <code>name</code>, <code>email</code>, <code>password</code>, <code>confirmPassword</code>, <code>errors</code> object, <code>showPassword</code>, <code>isSubmitting</code>.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useState</code> for controlled inputs and errors; <code>useRef</code> for 3D bounce scale animation; <code>useAuth</code> to dispatch credentials; <code>useTheme</code> for dynamic styling.</li>
+<br/>
+<h3>7.2. Menu Browsing Screen (<code>MenuScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> High-end culinary menu showcase featuring real-time category filtering and special highlights.</li>
+<li><strong>UI Elements:</strong> Horizontal category selector chips, pull-to-refresh FlatList, dish cards with image, price, rating, prep time, "Daily Special" badge, and heart favorite toggle.</li>
+<li><strong>Navigation Entry & Exit:</strong> Default tab in <code>CustomerTabs</code>; can navigate to item details or tray.</li>
+<li><strong>Local Data & State:</strong> <code>menuItems</code>, <code>isLoading</code>, <code>error</code>, <code>refreshing</code>, <code>selectedCategory</code>, <code>favouriteIds</code> array.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useState</code> for items and filters; <code>useEffect</code> for 1.5s simulated Promise fetch with unmount cleanup; <code>useMemo</code> for derived category lists; <code>useCallback</code> for memoized item handlers.</li>
+<br/>
+<h3>7.3. Search and Scroll Controls (Integration in <code>MenuScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> High-speed item search with debouncing and instant scroll-to-top controls.</li>
+<li><strong>UI Elements:</strong> Search input bar with search icon, clear button, recent search suggestion tags, floating "Back to top" arrow button, render counter debug label.</li>
+<li><strong>Navigation Entry & Exit:</strong> Embedded directly within the Menu screen view hierarchy.</li>
+<li><strong>Local Data & State:</strong> <code>searchQuery</code>, <code>debouncedQuery</code>, <code>isSearchFocused</code>, <code>recentSearches</code> array, <code>showBackToTop</code> boolean.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useRef</code> to maintain TextInput reference and persistent render counter; <code>useDebounce</code> custom hook for 400ms delay; <code>useRef</code> for FlatList scrollToOffset; <code>useMemo</code> for combined filter and sort pipeline.</li>
+<br/>
+<h3>7.4. Profile and Theme Screen (<code>ProfileScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> Patron profile overview and global dark/light luxury theme configuration.</li>
+<li><strong>UI Elements:</strong> User avatar, name, email, role badge, theme toggle switch with sun/moon icons, demo credentials helper, logout button.</li>
+<li><strong>Navigation Entry & Exit:</strong> Fourth tab in <code>CustomerTabs</code>; logout resets navigation stack back to <code>Login</code>.</li>
+<li><strong>Local Data & State:</strong> Reads active session from <code>useAuth</code> and theme state from <code>useTheme</code>.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useAuth</code> for user details and <code>logout()</code>; <code>useTheme</code> for <code>isDark</code> and <code>toggleTheme()</code>.</li>
+<br/>
+<h3>7.5. Cart Screen (<code>CartScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> Interactive culinary tray allowing quantity adjustments, dietary notes, and voucher redemption.</li>
+<li><strong>UI Elements:</strong> Scrollable list of cart items with quantity steppers (+/-), per-item special instruction input fields, delete button, promo code entry with apply button, checkout button.</li>
+<li><strong>Navigation Entry & Exit:</strong> Second tab in <code>CustomerTabs</code>; checkout button navigates to <code>OrderSummary</code>.</li>
+<li><strong>Local Data & State:</strong> <code>promoInput</code>, <code>promoError</code>, <code>promoSuccess</code>, items from <code>useCart</code>.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useCart</code> to access reducer state and dispatch actions (<code>INCREMENT</code>, <code>DECREMENT</code>, <code>UPDATE_NOTE</code>, <code>APPLY_PROMO</code>); <code>useTheme</code> for theme tokens.</li>
+<br/>
+<h3>7.6. Order Summary Screen (<code>OrderSummaryScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> Itemized financial verification and dining mode selection prior to kitchen dispatch.</li>
+<li><strong>UI Elements:</strong> Dine-in vs. Takeaway selector tabs, Table number selector / pickup time picker, itemized breakdown, tax/service charge summary card, confirm order button.</li>
+<li><strong>Navigation Entry & Exit:</strong> Pushed onto RootStack from <code>CartScreen</code>; on confirmation navigates to <code>OrderTracking</code>.</li>
+<li><strong>Local Data & State:</strong> <code>diningMode</code> ('dine-in' \| 'takeaway'), <code>selectedTable</code>, <code>pickupTime</code>.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useMemo</code> for subtotal, 5% service charge, 15% tax, discount, and grand total; <code>useOrders</code> to dispatch <code>createOrder()</code>; <code>useCart</code> to trigger <code>clearCart()</code>.</li>
+<br/>
+<h3>7.7. Table Reservation Screen (<code>ReservationScreen.js</code>)</h3>
+<li><strong>Purpose:</strong> Dine-in table booking portal with real-time slot conflict and seating capacity validation.</li>
+<li><strong>UI Elements:</strong> Date picker chips, hourly time slot pills (12:00–22:00) with disabled unavailable states, party size stepper (1–12), contact phone input, confirmation modal, My Reservations list.</li>
+<li><strong>Navigation Entry & Exit:</strong> Third tab in <code>CustomerTabs</code>.</li>
+<li><strong>Local Data & State:</strong> Pure UI presentation; delegates all state management to custom hook.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useReservation</code> custom hook for all business logic (selected slot, party size, availability calculation, booking creation, and cancellations); <code>useTheme</code> for styling.</li>
+<br/>
+<h3>7.8. Order Tracking &amp; Manager Dashboard</h3>
+<li><strong>Purpose:</strong> Real-time customer kitchen progress monitor and comprehensive manager operations console.</li>
+<li><strong>UI Elements:</strong></li>
+<p>  <em> </em>Tracking:* Status step progress bar (<code>Pending</code> ➔ <code>Preparing</code> ➔ <code>Ready</code> ➔ <code>Served</code>), running elapsed seconds timer counter, order items receipt.</p>
+<p>  <em> </em>Manager:* 3-Tab interface — (1) Incoming Orders with manual status step buttons, (2) Reservation requests with Accept/Decline, (3) Menu item manager with price editing, availability toggles, and new item creation.</p>
+<li><strong>Navigation Entry & Exit:</strong> <code>OrderTracking</code> is pushed from <code>OrderSummary</code>; <code>ManagerDashboard</code> is accessed upon manager login or via restricted tab.</li>
+<li><strong>Local Data & State:</strong> <code>activeTab</code> ('orders' \| 'reservations' \| 'menu'), <code>elapsedSeconds</code>, <code>editModalVisible</code>.</li>
+<li><strong>Hooks Used & Why:</strong> <code>useEffect</code> with <code>setInterval</code> for automated status progression and 1-second elapsed counter; unmount cleanup functions; <code>useOrders</code>, <code>useMenu</code>, and <code>useReservation</code> for shared synchronized state.</li>
+<br/>
+<hr/>
+<p><em>End of Software Requirements Specification (SRS)</em></p>
+</body>
+</html>
