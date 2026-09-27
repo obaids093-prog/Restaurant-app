@@ -151,3 +151,13 @@ src/
 > 1. **Trivial computations**: Filtering or transforming small arrays (< 50 items), basic arithmetic, or simple string formatting. The cost of running dependency comparisons often exceeds the recalculation itself.
 > 2. **Unstable dependencies**: Functions or values whose dependencies mutate on every single render. The cache misses on every pass, rendering caching useless.
 > 3. **Un-memoized children**: Passing a `useCallback` handler to a standard child component that is not wrapped in `React.memo` provides zero optimization, as normal components re-render whenever the parent re-renders regardless of prop stability.
+
+---
+
+## 10. Application Demonstration Video (Q10 Deliverable)
+
+The complete end-to-end user journey across Customer and Restaurant Manager workflows has been recorded and included directly within the repository.
+
+* **Primary Video File**: [Watch A1 Demo Video on GitHub (A1/demo_video.mp4)](https://github.com/obaids093-prog/Restaurant-app/blob/main/A1/demo_video.mp4)
+* **Alternative Mirror**: [Watch Video in `uml/` folder](https://github.com/obaids093-prog/Restaurant-app/blob/main/uml/WhatsApp%20Video%202026-09-27%20at%209.16.51%20PM.mp4)
+
