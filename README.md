@@ -1,4 +1,4 @@
-# AURA — Artisan Kitchen & Modern Botanica (Expo / React Native)
+# AURA: Artisan Kitchen & Modern Botanica (Expo / React Native)
 
 A luxury, client-ready mobile application engineered with React Native and Expo SDK. The app features state-of-the-art 3D physics animations, lustrous emerald teal & champagne gold luxury palettes with midnight obsidian slate, complete role-based workflows for Dining Guests and Executive Kitchen Managers, pure immutable state reducers, table reservation algorithms, and live kitchen order progression timelines.
 
@@ -59,7 +59,7 @@ npm start
 ## 4. Architectural Analysis: Context API vs. Prop Drilling
 
 > **Why Context Suits This App**:  
-> In an interactive restaurant app, state items like `user`, `cartState`, `orders`, and `isDark` are required across deeply nested component trees — from global tab bars and header badges down to individual food cards and modals. Passing these states through props would require threading them through intermediate layout containers (`NavigationContainer ➔ Stack ➔ Tab ➔ Screen ➔ Card`), causing massive boilerplate and brittle component interfaces. Context provides a clean, centralized subscription model.
+> In an interactive restaurant app, state items like `user`, `cartState`, `orders`, and `isDark` are required across deeply nested component trees: from global tab bars and header badges down to individual food cards and modals. Passing these states through props would require threading them through intermediate layout containers (`NavigationContainer ➔ Stack ➔ Tab ➔ Screen ➔ Card`), causing massive boilerplate and brittle component interfaces. Context provides a clean, centralized subscription model.
 >
 > **Drawback of Context**:  
 > Every component consuming a Context via `useContext` will automatically re-render whenever *any* attribute in the Context's provider value changes, even if the component only depends on an unrelated property. For frequently changing states, splitting contexts (e.g. `AuthContext`, `CartContext`, `OrdersContext`, `ThemeContext`, `MenuContext`) and memoizing values with `useMemo` is essential to prevent unnecessary app-wide re-renders.

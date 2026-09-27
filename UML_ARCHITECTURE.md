@@ -1,4 +1,4 @@
-# AURA — Complete UML Architecture & System Design
+# AURA: Complete UML Architecture & System Design
 
 This document details the complete architectural design, data models, state workflows, and use case diagrams for the **AURA Restaurant Application (Modern Artisan Kitchen & Botanica)**.
 
