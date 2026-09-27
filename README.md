@@ -1,5 +1,14 @@
 # AURA: Artisan Kitchen & Modern Botanica (Expo / React Native)
 
+### Student Submission Details
+* **Name:** Syed Obaid Ali
+* **Roll No:** 9321
+* **Subject:** Mobile Application Development (MAD)
+* **Assignment:** Assignment 1 (A1 - Fall 2026)
+* **Teacher:** Dr. Sadaf Tanvir
+
+---
+
 A luxury, client-ready mobile application engineered with React Native and Expo SDK. The app features state-of-the-art 3D physics animations, lustrous emerald teal & champagne gold luxury palettes with midnight obsidian slate, complete role-based workflows for Dining Guests and Executive Kitchen Managers, pure immutable state reducers, table reservation algorithms, and live kitchen order progression timelines.
 
 ---
