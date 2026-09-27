@@ -4,7 +4,7 @@ import { cartReducer, initialCartState } from '../reducers/cartReducer';
 
 export const CartContext = createContext(null);
 
-const CART_STORAGE_KEY = '@gourmet_haven_cart_state';
+const CART_STORAGE_KEY = '@aura_cart_state';
 
 export const CartProvider = ({ children }) => {
   const [cartState, dispatch] = useReducer(cartReducer, initialCartState);

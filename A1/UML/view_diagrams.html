@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gourmet Haven — UML Architectural Diagrams</title>
+  <title>AURA: UML Architectural Diagrams</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
     body {
@@ -23,15 +23,15 @@
       margin-bottom: 40px;
     }
     h1 {
-      color: #f59e0b;
+      color: #0D9488;
       margin-bottom: 8px;
     }
     .badge {
       display: inline-block;
       padding: 4px 10px;
-      background: rgba(245, 158, 11, 0.15);
-      color: #f59e0b;
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(13, 148, 136, 0.15);
+      color: #14B8A6;
+      border: 1px solid rgba(13, 148, 136, 0.4);
       border-radius: 6px;
       font-size: 13px;
       font-weight: 600;
@@ -45,7 +45,7 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
     h2 {
-      color: #58a6ff;
+      color: #2DD4BF;
       margin-top: 0;
       border-bottom: 1px solid #21262d;
       padding-bottom: 12px;
@@ -74,7 +74,7 @@
 <body>
   <div class="container">
     <header>
-      <h1>Gourmet Haven — UML Architectural Models</h1>
+      <h1>AURA: UML Architectural Models</h1>
       <p>Mobile Application Development (Fall 2026) • Question 2 Complete Deliverables</p>
       <span class="badge">5 Core System Diagrams</span>
     </header>
@@ -88,7 +88,7 @@
       <div class="mermaid-box">
         <pre class="mermaid">
 graph LR
-    subgraph System_Boundary ["Gourmet Haven System"]
+    subgraph System_Boundary ["AURA Restaurant System"]
         UC1(["Browse Menu & Specials"])
         UC2(["Search & Filter Dishes"])
         UC3(["Add Item to Cart"])
@@ -265,10 +265,10 @@ sequenceDiagram
     participant Tracking as OrderTrackingScreen
 
     Customer->>Menu: Browse Menu Catalog
-    Menu->>Card: Render Item (Wagyu Ribeye)
+    Menu->>Card: Render Item (Angus Tenderloin)
     Customer->>Card: Tap "Add to Cart"
     Card->>Reducer: dispatch({ type: 'ADD_ITEM', payload: item })
-    Reducer-->>Cart: State updated (items: [Wagyu x 1])
+    Reducer-->>Cart: State updated (items: [Angus Tenderloin x 1])
     
     Customer->>Cart: View Cart Tray
     Customer->>Cart: Enter Note ("Medium Rare") & Promo ("WELCOME10")
@@ -276,9 +276,9 @@ sequenceDiagram
     Customer->>Cart: Tap "Proceed to Checkout"
     Cart->>Summary: Navigate to OrderSummaryScreen
 
-    Customer->>Summary: Select "Dine-in" & Table #4
+    Customer->>Summary: Select "Dine-in" & Table A-01
     Customer->>Summary: Tap "Confirm & Place Order"
-    Summary->>OrdersCtx: createOrder({ items, total, type: 'dine-in', table: 4 })
+    Summary->>OrdersCtx: createOrder({ items, total, type: 'dine-in', table: 'A-01' })
     OrdersCtx-->>OrdersCtx: Store order with status "Pending" & timestamp
     OrdersCtx->>Reducer: dispatch({ type: 'CLEAR_CART' })
     Summary->>Tracking: Navigate to OrderTrackingScreen
@@ -383,12 +383,12 @@ graph TD
       theme: 'dark',
       themeVariables: {
         darkMode: true,
-        primaryColor: '#f59e0b',
+        primaryColor: '#0D9488',
         primaryTextColor: '#ffffff',
-        primaryBorderColor: '#d97706',
-        lineColor: '#58a6ff',
-        secondaryColor: '#1f2937',
-        tertiaryColor: '#111827'
+        primaryBorderColor: '#0F766E',
+        lineColor: '#2DD4BF',
+        secondaryColor: '#134E4A',
+        tertiaryColor: '#0F172A'
       }
     });
   </script>

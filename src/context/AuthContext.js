@@ -44,7 +44,10 @@ export const AuthProvider = ({ children }) => {
     const cleanPass = password.trim();
 
     const matchedUser = registeredUsers.find(
-      (u) => u.email.toLowerCase() === cleanEmail && u.password === cleanPass
+      (u) =>
+        (u.email.toLowerCase() === cleanEmail ||
+          (u.alternateEmail && u.alternateEmail.toLowerCase() === cleanEmail)) &&
+        u.password === cleanPass
     );
 
     if (!matchedUser) {

@@ -4,7 +4,7 @@ import { mockMenuItems } from '../data/menu';
 
 export const MenuContext = createContext(null);
 
-const MENU_STORAGE_KEY = '@gourmet_haven_menu_inventory';
+const MENU_STORAGE_KEY = '@aura_menu_inventory';
 
 export const MenuProvider = ({ children }) => {
   const [menuItems, setMenuItems] = useState(mockMenuItems);

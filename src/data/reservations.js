@@ -1,32 +1,33 @@
 /**
- * Initial Mock Table Reservations
+ * AURA — Mock Table Reservations
+ * Initial reservations utilizing updated patron and table identifiers.
  */
 
 export const mockReservations = [
   {
-    id: 'RES-101',
-    customerId: 'u1',
-    customerName: 'Ayesha Khan',
-    phone: '0300-1234567',
+    id: 'RES-801',
+    customerId: 'usr_c1',
+    customerName: 'Zainab Malik',
+    phone: '0302-8877665',
     date: new Date().toISOString().split('T')[0], // Today
     timeSlot: '19:00',
     partySize: 4,
-    tableId: 't3',
-    tableName: 'T-03 (Indoor Main Dining)',
-    specialRequests: 'Window preference for anniversary celebration',
+    tableId: 'tbl_03',
+    tableName: "C-03 (Chef's Counter Booth)",
+    specialRequests: "Anniversary celebration, chef's tasting menu requested",
     status: 'Confirmed', // 'Confirmed' | 'Cancelled' | 'Declined'
   },
   {
-    id: 'RES-102',
-    customerId: 'u3',
-    customerName: 'Hamza Ali',
-    phone: '0333-9876543',
+    id: 'RES-802',
+    customerId: 'usr_c2',
+    customerName: 'Hamza Abbasi',
+    phone: '0333-4455667',
     date: new Date().toISOString().split('T')[0], // Today
     timeSlot: '20:00',
     partySize: 6,
-    tableId: 't6',
-    tableName: 'T-06 (Rooftop VIP Terrace)',
-    specialRequests: 'Quiet area',
+    tableId: 'tbl_06',
+    tableName: 'P-06 (Penthouse Skyline Lounge)',
+    specialRequests: 'Quiet VIP corner seating',
     status: 'Confirmed',
   },
 ];

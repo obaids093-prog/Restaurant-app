@@ -39,7 +39,7 @@ export default function CartScreen({ navigation }) {
 
   // Dining preference state (Task 8 requirement)
   const [orderType, setOrderType] = useState('Dine-in'); // 'Dine-in' | 'Takeaway'
-  const [tableNumber, setTableNumber] = useState('Table 4 (Patio Garden)');
+  const [tableNumber, setTableNumber] = useState('Table A-01 (Atrium Glasshouse)');
   const [pickupTime, setPickupTime] = useState('In 25 minutes');
 
   /**
@@ -359,7 +359,7 @@ export default function CartScreen({ navigation }) {
                         color: colors.textPrimary,
                       },
                     ]}
-                    placeholder="Enter code: WELCOME10 or FEAST20"
+                    placeholder="Enter voucher: WELCOME10, FEAST20, AURA30"
                     placeholderTextColor={colors.textMuted}
                     value={promoInput}
                     onChangeText={(val) => {
@@ -395,6 +395,12 @@ export default function CartScreen({ navigation }) {
                     style={[styles.hintChip, { backgroundColor: colors.surfaceSubtle }]}
                   >
                     <Text style={[styles.hintText, { color: colors.textMuted }]}>FEAST20 (20%)</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setPromoInput('AURA30')}
+                    style={[styles.hintChip, { backgroundColor: colors.surfaceSubtle }]}
+                  >
+                    <Text style={[styles.hintText, { color: colors.primary }]}>AURA30 (30% VIP)</Text>
                   </TouchableOpacity>
                 </View>
               </View>

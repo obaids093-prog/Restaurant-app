@@ -5,10 +5,11 @@
  */
 
 export const PROMO_CODES = {
-  WELCOME10: 10,  // 10% Off
-  FEAST20: 20,    // 20% Off
-  GOURMET30: 30,  // 30% Off VIP
+  WELCOME10: 10,  // 10% Off (Assignment required)
+  FEAST20: 20,    // 20% Off (Assignment required)
+  AURA30: 30,     // 30% Off AURA VIP
   CHEF15: 15,     // 15% Chef Special
+  GOURMET30: 30,  // 30% Off VIP
 };
 
 export const initialCartState = {

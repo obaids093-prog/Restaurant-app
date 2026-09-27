@@ -18,7 +18,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useMenu } from '../context/MenuContext';
 import MenuItemCard from '../components/MenuItemCard';
+import { useDebounce } from '../hooks/useDebounce';
 import { mockMenuItems } from '../data/menu';
 
 const { width } = Dimensions.get('window');
@@ -54,6 +56,7 @@ export default function MenuScreen({ navigation }) {
   const { colors, isDark, shadows } = useTheme();
   const { user } = useAuth();
   const { addItem, totalItemCount } = useCart();
+  const { menuItems: contextMenuItems } = useMenu();
 
   // Task 3: Render count tracker using useRef
   const renderCountRef = useRef(0);
@@ -68,20 +71,18 @@ export default function MenuScreen({ navigation }) {
   const [selectedSort, setSelectedSort] = useState('default');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
-  // Task 6: Single state array of favourite item IDs
-  const [favouriteIds, setFavouriteIds] = useState(['m1', 'm5', 'm10']);
+  // Question 8: Single state array of favourite item IDs
+  const [favouriteIds, setFavouriteIds] = useState(['art_s1', 'art_m1', 'art_d1']);
 
-  // Search states & refs
+  // Search states & refs (Question 9: using custom useDebounce hook)
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debouncedQuery = useDebounce(searchQuery, 400);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [recentSearches, setRecentSearches] = useState(['Wagyu', 'Truffle', 'Tiramisu', 'Latte']);
+  const [recentSearches, setRecentSearches] = useState(['Lobster Bisque', 'Angus Tenderloin', 'Matcha', 'Fondant']);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   const searchInputRef = useRef(null);
   const flatListRef = useRef(null);
-  const debounceTimerRef = useRef(null);
-  const prevQueryRef = useRef('');
   const loadTimerRef = useRef(null);
   const backToTopAnim = useRef(new Animated.Value(0)).current;
 
@@ -100,7 +101,7 @@ export default function MenuScreen({ navigation }) {
 
     const fetchPromise = new Promise((resolve) => {
       loadTimerRef.current = setTimeout(() => {
-        resolve(mockMenuItems);
+        resolve(contextMenuItems && contextMenuItems.length > 0 ? contextMenuItems : mockMenuItems);
       }, 1500);
     });
 
@@ -121,42 +122,39 @@ export default function MenuScreen({ navigation }) {
     loadMenuData();
     return () => {
       if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, []);
 
-  // Debounced search input handler (400ms delay)
+  // Synchronize live menu modifications made in Manager Dashboard
+  useEffect(() => {
+    if (!isLoading && contextMenuItems && contextMenuItems.length > 0) {
+      setMenuItems(contextMenuItems);
+    }
+  }, [contextMenuItems, isLoading]);
+
+  // Update recent searches whenever debouncedQuery changes and has length > 1
+  useEffect(() => {
+    const trimmed = debouncedQuery.trim();
+    if (trimmed.length > 1) {
+      setRecentSearches((prev) => {
+        const exists = prev.filter((item) => item.toLowerCase() !== trimmed.toLowerCase());
+        return [trimmed, ...exists].slice(0, 5);
+      });
+    }
+  }, [debouncedQuery]);
+
+  // Direct search input handler - useDebounce automatically delays filtering
   const handleSearchTextChange = (text) => {
     setSearchQuery(text);
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-
-    debounceTimerRef.current = setTimeout(() => {
-      const trimmed = text.trim();
-      if (prevQueryRef.current !== trimmed) {
-        prevQueryRef.current = trimmed;
-        setDebouncedQuery(trimmed);
-
-        if (trimmed.length > 1) {
-          setRecentSearches((prev) => {
-            const exists = prev.filter((item) => item.toLowerCase() !== trimmed.toLowerCase());
-            return [trimmed, ...exists].slice(0, 5);
-          });
-        }
-      }
-    }, 400);
   };
 
   const handleClearSearch = () => {
     setSearchQuery('');
-    setDebouncedQuery('');
-    prevQueryRef.current = '';
     searchInputRef.current?.focus();
   };
 
   const handleSelectRecentSearch = (term) => {
     setSearchQuery(term);
-    setDebouncedQuery(term);
-    prevQueryRef.current = term;
     setIsSearchFocused(false);
   };
 
@@ -234,7 +232,7 @@ export default function MenuScreen({ navigation }) {
   // Update Navigation Header Title with dynamic count
   useEffect(() => {
     navigation.setOptions({
-      title: `Gourmet Menu (${displayedItems.length})`,
+      title: `AURA Kitchen (${displayedItems.length})`,
       headerRight: () => (
         <View style={styles.headerRightContainer}>
           {/* Debug Render Count Label */}
@@ -409,13 +407,24 @@ export default function MenuScreen({ navigation }) {
         }
         ListHeaderComponent={
           <View style={styles.listHeaderWrapper}>
-            {/* Header Title */}
-            <View style={styles.bannerRow}>
+            {/* Architectural Culinary Header */}
+            <View style={[styles.bannerRow, { borderBottomColor: colors.surfaceBorder }]}>
+              <View style={styles.bannerBadgeRow}>
+                <View style={[styles.halalBadge, { backgroundColor: colors.primary + '18', borderColor: colors.primary }]}>
+                  <Ionicons name="shield-checkmark" size={11} color={colors.primary} />
+                  <Text style={[styles.halalBadgeText, { color: colors.primary }]}>100% HALAL ARTISAN</Text>
+                </View>
+                <View style={[styles.halalBadge, { backgroundColor: colors.secondary + '18', borderColor: colors.secondary }]}>
+                  <Ionicons name="sparkles" size={11} color={colors.secondary} />
+                  <Text style={[styles.halalBadgeText, { color: colors.secondary }]}>CHEF CURATED</Text>
+                </View>
+              </View>
+
               <Text style={[styles.welcomeGreeting, { color: colors.textPrimary }]}>
-                Culinary Showcase
+                {user?.name ? `AURA Kitchen • ${user.name.split(' ')[0]}` : 'AURA • Artisan Gastronomy'}
               </Text>
               <Text style={[styles.welcomeSubtext, { color: colors.textSecondary }]}>
-                Explore artisan appetizers, prime steaks, desserts, and craft drinks.
+                Woodfired Specialties • Botanical Infusions • Lahore Flagship Lounge
               </Text>
             </View>
 
@@ -444,7 +453,7 @@ export default function MenuScreen({ navigation }) {
               <TextInput
                 ref={searchInputRef}
                 style={[styles.searchInput, { color: colors.textPrimary }]}
-                placeholder="Search wagyu, truffle, tiramisu, latte..."
+                placeholder="Search scallops, tenderloin, lobster, matcha..."
                 placeholderTextColor={colors.textMuted}
                 value={searchQuery}
                 onChangeText={handleSearchTextChange}
@@ -505,7 +514,7 @@ export default function MenuScreen({ navigation }) {
             {/* SORTING CONTROLS BAR (Task 6) */}
             <View style={styles.sortBar}>
               <Text style={[styles.sortLabel, { color: colors.textMuted }]}>
-                Showing {displayedItems.length} delicacies
+                Showing {displayedItems.length} artisan culinary creations
               </Text>
 
               <TouchableOpacity
@@ -714,8 +723,27 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   bannerRow: {
-    marginBottom: 12,
+    marginBottom: 14,
     paddingHorizontal: 4,
+  },
+  bannerBadgeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  halalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  halalBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.6,
   },
   welcomeGreeting: {
     fontSize: 24,

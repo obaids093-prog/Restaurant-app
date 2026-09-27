@@ -106,7 +106,7 @@ export default function ManagerDashboardScreen({ navigation }) {
               Kitchen & Operations Console
             </Text>
             <Text style={[styles.managerName, { color: colors.primary }]}>
-              Logged in as: {user?.name || 'Chef Tariq'} (Manager)
+              Logged in as: {user?.name || 'Chef Marcus Vance'} (Operations GM)
             </Text>
           </View>
 

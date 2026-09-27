@@ -3,7 +3,7 @@ import safeStorage from '../utils/safeStorage';
 import { mockTables } from '../data/tables';
 import { mockReservations } from '../data/reservations';
 
-const RESERVATIONS_STORAGE_KEY = '@gourmet_haven_reservations_data';
+const RESERVATIONS_STORAGE_KEY = '@aura_reservations_data';
 
 export const TIME_SLOTS = [
   '12:00', '13:00', '14:00', '15:00', '16:00',
@@ -24,8 +24,8 @@ export function useReservation(currentUser) {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('19:00');
   const [partySize, setPartySize] = useState(2);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [contactName, setContactName] = useState(currentUser?.name || 'Ayesha Khan');
-  const [contactPhone, setContactPhone] = useState(currentUser?.phone || '0300-1234567');
+  const [contactName, setContactName] = useState(currentUser?.name || 'Zainab Malik');
+  const [contactPhone, setContactPhone] = useState(currentUser?.phone || '0302-8877665');
   const [specialRequests, setSpecialRequests] = useState('');
   const [reservationsList, setReservationsList] = useState(mockReservations);
   const [validationErrors, setValidationErrors] = useState({});

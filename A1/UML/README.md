@@ -1,6 +1,6 @@
-# Gourmet Haven — UML Architectural Diagrams (A1 Deliverables)
+# AURA: UML Architectural Diagrams (A1 Deliverables)
 
-This folder contains the complete visual models for the **Gourmet Haven Restaurant App MVP**, fulfilling all specifications of **Question 2** in `A1-FA2026.docx`.
+This folder contains the complete visual models for the **AURA Restaurant App MVP (Modern Artisan Kitchen & Botanica)**, fulfilling all specifications of **Question 2** in `A1-FA2026.docx`.
 
 ---
 
@@ -22,7 +22,7 @@ This folder contains the complete visual models for the **Gourmet Haven Restaura
 
 ```mermaid
 graph LR
-    subgraph System_Boundary ["Gourmet Haven System"]
+    subgraph System_Boundary ["AURA Restaurant System"]
         UC1(["Browse Menu & Specials"])
         UC2(["Search & Filter Dishes"])
         UC3(["Add Item to Cart"])
@@ -189,10 +189,10 @@ sequenceDiagram
     participant Tracking as OrderTrackingScreen
 
     Customer->>Menu: Browse Menu Catalog
-    Menu->>Card: Render Item (Wagyu Ribeye)
+    Menu->>Card: Render Item (Angus Tenderloin)
     Customer->>Card: Tap "Add to Cart"
     Card->>Reducer: dispatch({ type: 'ADD_ITEM', payload: item })
-    Reducer-->>Cart: State updated (items: [Wagyu x 1])
+    Reducer-->>Cart: State updated (items: [Angus Tenderloin x 1])
     
     Customer->>Cart: View Cart Tray
     Customer->>Cart: Enter Note ("Medium Rare") & Promo ("WELCOME10")
@@ -200,9 +200,9 @@ sequenceDiagram
     Customer->>Cart: Tap "Proceed to Checkout"
     Cart->>Summary: Navigate to OrderSummaryScreen
 
-    Customer->>Summary: Select "Dine-in" & Table #4
+    Customer->>Summary: Select "Dine-in" & Table A-01
     Customer->>Summary: Tap "Confirm & Place Order"
-    Summary->>OrdersCtx: createOrder({ items, total, type: 'dine-in', table: 4 })
+    Summary->>OrdersCtx: createOrder({ items, total, type: 'dine-in', table: 'A-01' })
     OrdersCtx-->>OrdersCtx: Store order with status "Pending" & timestamp
     OrdersCtx->>Reducer: dispatch({ type: 'CLEAR_CART' })
     Summary->>Tracking: Navigate to OrderTrackingScreen

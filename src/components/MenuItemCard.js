@@ -10,8 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from '../utils/SafeLinearGradient';
 
 /**
- * Task 6: MenuItemCard wrapped in React.memo
- * Optimization check: Only re-renders when its own props (item, isFavourite, handlers) change.
+ * Question 8: MenuItemCard wrapped in React.memo
+ * Optimization verification: Only re-renders when its own props (item, isFavourite, handlers) change.
  */
 const MenuItemCard = React.memo(function MenuItemCard({
   item,
@@ -21,7 +21,7 @@ const MenuItemCard = React.memo(function MenuItemCard({
   colors,
   shadows,
 }) {
-  // Demonstration console.log as required by Task 6:
+  // Demonstration console.log as required by Question 8:
   console.log(`[PERF - React.memo] Rendered MenuItemCard ID: ${item.id} - ${item.name}`);
 
   const isAvailable = item.isAvailable;
@@ -32,25 +32,25 @@ const MenuItemCard = React.memo(function MenuItemCard({
         styles.cardWrapper,
         {
           backgroundColor: colors.card,
-          borderColor: colors.cardBorder,
+          borderColor: isAvailable ? colors.cardBorder : colors.surfaceBorder,
           opacity: isAvailable ? 1 : 0.65,
         },
         shadows.medium3D,
       ]}
     >
-      {/* Food Imagery */}
+      {/* Food Imagery & Floating Badges */}
       <View style={styles.imageContainer}>
         <Image source={{ uri: item.image }} style={styles.foodImage} resizeMode="cover" />
 
-        {/* Daily Special 3D Badge */}
+        {/* Daily Special / Chef Badge */}
         {item.isSpecial && (
           <LinearGradient
-            colors={['#FF6B6B', '#D84315']}
+            colors={['#D97706', '#B45309']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={[styles.specialBadge, shadows.soft]}
           >
-            <Ionicons name="flame" size={13} color="#FFFFFF" />
+            <Ionicons name="sparkles" size={12} color="#FFFFFF" />
             <Text style={styles.specialBadgeText}>Daily Special</Text>
           </LinearGradient>
         )}
@@ -70,7 +70,7 @@ const MenuItemCard = React.memo(function MenuItemCard({
           onPress={() => onToggleFavourite(item.id)}
           style={[
             styles.favouriteBtn,
-            { backgroundColor: isFavourite ? 'rgba(211, 47, 47, 0.95)' : 'rgba(0,0,0,0.6)' },
+            { backgroundColor: isFavourite ? '#E11D48' : 'rgba(15, 23, 42, 0.65)' },
             shadows.soft,
           ]}
           activeOpacity={0.7}
@@ -85,11 +85,11 @@ const MenuItemCard = React.memo(function MenuItemCard({
 
         {/* Category & Rating Floating Badges */}
         <View style={styles.imageFloatingMeta}>
-          <View style={[styles.categoryTag, { backgroundColor: 'rgba(18, 15, 13, 0.8)' }]}>
+          <View style={[styles.categoryTag, { backgroundColor: 'rgba(11, 17, 23, 0.85)' }]}>
             <Text style={styles.categoryTagText}>{item.category}</Text>
           </View>
-          <View style={[styles.ratingTag, { backgroundColor: 'rgba(18, 15, 13, 0.8)' }]}>
-            <Ionicons name="star" size={12} color="#FFCA28" />
+          <View style={[styles.ratingTag, { backgroundColor: 'rgba(11, 17, 23, 0.85)' }]}>
+            <Ionicons name="star" size={12} color="#FBBF24" />
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
         </View>
@@ -97,6 +97,14 @@ const MenuItemCard = React.memo(function MenuItemCard({
 
       {/* Card Content Details */}
       <View style={styles.cardContent}>
+        {item.tag && (
+          <View style={styles.tagRow}>
+            <View style={[styles.tagPill, { backgroundColor: colors.badge }]}>
+              <Text style={[styles.tagPillText, { color: colors.badgeText }]}>{item.tag}</Text>
+            </View>
+          </View>
+        )}
+
         <Text
           style={[styles.foodTitle, { color: isAvailable ? colors.textPrimary : colors.textMuted }]}
           numberOfLines={1}
@@ -126,25 +134,27 @@ const MenuItemCard = React.memo(function MenuItemCard({
             onPress={() => onAddToCart(item)}
             disabled={!isAvailable}
             style={[
-              styles.addButton,
-              { backgroundColor: isAvailable ? colors.primary : colors.inputBorder },
+              styles.addButtonOuter,
               isAvailable && shadows.button3D,
             ]}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Ionicons
-              name={isAvailable ? 'add' : 'ban'}
-              size={18}
-              color={isAvailable ? '#FFFFFF' : colors.textMuted}
-            />
-            <Text
-              style={[
-                styles.addButtonText,
-                { color: isAvailable ? '#FFFFFF' : colors.textMuted },
-              ]}
-            >
-              {isAvailable ? 'Add to Cart' : 'Sold Out'}
-            </Text>
+            {isAvailable ? (
+              <LinearGradient
+                colors={['#0D9488', '#0F766E']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.addButtonGradient}
+              >
+                <Ionicons name="add" size={17} color="#FFFFFF" />
+                <Text style={styles.addButtonText}>Add to Tray</Text>
+              </LinearGradient>
+            ) : (
+              <View style={[styles.soldOutButton, { backgroundColor: colors.inputBorder }]}>
+                <Ionicons name="ban" size={15} color={colors.textMuted} />
+                <Text style={[styles.soldOutButtonText, { color: colors.textMuted }]}>Sold Out</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -156,16 +166,17 @@ export default MenuItemCard;
 
 const styles = StyleSheet.create({
   cardWrapper: {
+    marginHorizontal: 16,
+    marginVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
     overflow: 'hidden',
-    marginBottom: 16,
   },
   imageContainer: {
+    height: 190,
     width: '100%',
-    height: 180,
     position: 'relative',
-    backgroundColor: '#201A16',
+    backgroundColor: '#0F172A',
   },
   foodImage: {
     width: '100%',
@@ -173,105 +184,128 @@ const styles = StyleSheet.create({
   },
   specialBadge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
+    top: 14,
+    left: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 14,
+    gap: 5,
   },
   specialBadgeText: {
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '800',
-    marginLeft: 4,
-    letterSpacing: 0.3,
-  },
-  favouriteBtn: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    letterSpacing: 0.5,
   },
   unavailableOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   soldOutBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(211, 47, 47, 0.92)',
-    paddingVertical: 6,
+    backgroundColor: '#E11D48',
+    paddingVertical: 7,
     paddingHorizontal: 14,
-    borderRadius: 14,
+    borderRadius: 20,
+    gap: 6,
   },
   soldOutText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    marginLeft: 6,
+    letterSpacing: 0.3,
+  },
+  favouriteBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
   },
   imageFloatingMeta: {
     position: 'absolute',
-    bottom: 10,
-    left: 12,
-    right: 12,
+    bottom: 12,
+    left: 14,
+    right: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   categoryTag: {
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   categoryTagText: {
-    color: '#FFFFFF',
+    color: '#F8FAFC',
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   ratingTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 3,
+    paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 8,
+    borderRadius: 10,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   ratingText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    marginLeft: 4,
+    fontSize: 11,
+    fontWeight: '800',
   },
   cardContent: {
     padding: 16,
   },
+  tagRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  tagPill: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  tagPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   foodTitle: {
     fontSize: 17,
     fontWeight: '800',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
+    marginBottom: 5,
   },
   foodDescription: {
     fontSize: 13,
     lineHeight: 18,
-    marginTop: 6,
+    marginBottom: 14,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginTop: 14,
-    paddingTop: 10,
+    alignItems: 'center',
+    paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(150, 150, 150, 0.12)',
+    borderTopColor: 'rgba(150, 150, 150, 0.1)',
   },
   priceCurrency: {
     fontSize: 13,
@@ -280,27 +314,45 @@ const styles = StyleSheet.create({
   priceAmount: {
     fontSize: 19,
     fontWeight: '900',
+    letterSpacing: -0.5,
   },
   prepTimeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 3,
+    gap: 4,
+    marginTop: 2,
   },
   prepTimeText: {
     fontSize: 11,
     fontWeight: '600',
-    marginLeft: 4,
   },
-  addButton: {
+  addButtonOuter: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  addButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 9,
     paddingHorizontal: 16,
-    borderRadius: 14,
+    gap: 6,
   },
   addButtonText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
-    marginLeft: 4,
+    letterSpacing: 0.2,
+  },
+  soldOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    gap: 6,
+  },
+  soldOutButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

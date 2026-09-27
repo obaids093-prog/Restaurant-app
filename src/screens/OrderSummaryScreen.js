@@ -23,7 +23,7 @@ export default function OrderSummaryScreen({ route, navigation }) {
 
   const {
     orderType = 'Dine-in',
-    tableNumber = 'Table 4 (Patio Garden)',
+    tableNumber = 'Table A-01 (Atrium Glasshouse)',
     pickupTime = 'In 25 minutes',
     calculations,
   } = route.params || {};

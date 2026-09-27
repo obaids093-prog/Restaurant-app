@@ -179,7 +179,7 @@ export default function ReservationScreen() {
               Table Seating Details
             </Text>
             <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-              Reserve an exclusive table in our Main Hall, Garden Patio, or VIP Rooftop.
+              Reserve an exclusive table in our Glasshouse Atrium, Botanica Garden, or Penthouse Lounge.
             </Text>
 
             {/* DATE INPUT */}
@@ -399,7 +399,7 @@ export default function ReservationScreen() {
                   style={[styles.textInput, { color: colors.textPrimary }]}
                   value={contactName}
                   onChangeText={setContactName}
-                  placeholder="e.g. Ayesha Khan"
+                  placeholder="e.g. Zainab Malik"
                   placeholderTextColor={colors.textMuted}
                 />
               </View>

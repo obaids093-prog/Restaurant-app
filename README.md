@@ -1,6 +1,6 @@
-# Gourmet Haven — Restaurant Mobile Application (Expo / React Native)
+# AURA — Artisan Kitchen & Modern Botanica (Expo / React Native)
 
-A luxury, client-ready mobile application engineered with React Native and Expo. The app features state-of-the-art 3D physics animations, warm culinary amber-obsidian theme palettes, complete role-based workflows for Guests/Customers and Kitchen Managers, pure immutable state reducers, table reservation algorithms, and live kitchen order progression timelines.
+A luxury, client-ready mobile application engineered with React Native and Expo SDK. The app features state-of-the-art 3D physics animations, lustrous emerald teal & champagne gold luxury palettes with midnight obsidian slate, complete role-based workflows for Dining Guests and Executive Kitchen Managers, pure immutable state reducers, table reservation algorithms, and live kitchen order progression timelines.
 
 ---
 
@@ -33,8 +33,8 @@ npm start
 
 | Role | Email Address | Password | Permissions & Workflow |
 |---|---|---|---|
-| **Customer** | `customer@restaurant.com` | `Password123` | Menu browsing, Cart customization, Promo codes, Dine-in / Takeaway checkout, Live Order Tracking, Table reservations. |
-| **Manager** | `manager@restaurant.com` | `Admin1234` | Kitchen orders queue progression (`Preparing` ➔ `Ready` ➔ `Served`), Table booking approvals, Live menu inventory & price edits. |
+| **Customer (Diner)** | `customer@aurabistro.com`<br/>*(or `customer@restaurant.com`)* | `Password123` | Menu browsing, Cart customization, Promo codes, Dine-in / Takeaway checkout, Live Order Tracking, Table reservations. |
+| **Manager (Operations GM)** | `manager@aurabistro.com`<br/>*(or `manager@restaurant.com`)* | `Admin1234` | Kitchen orders queue progression (`Preparing` ➔ `Ready` ➔ `Served`), Table booking approvals, Live menu inventory & price edits. |
 | **Guest / Test** | `user@test.com` | `Password1` | Customer dining account. |
 
 *(Quick 1-tap pre-fill chips are also available on the Login screen for instant review).*
@@ -46,7 +46,7 @@ npm start
 | Screen | React Core Hooks | Custom Project Hooks | Purpose & Responsibility |
 |---|---|---|---|
 | **LoginScreen** | `useState`, `useEffect`, `useRef` | `useAuth`, `useTheme` | 3D card flip animation, credentials validation, immediate error clearing on typing, secure session storage. |
-| **MenuScreen** | `useState`, `useEffect`, `useRef`, `useMemo`, `useCallback` | `useTheme`, `useAuth`, `useCart` | 1.5s simulated async fetch, category chips, 400ms debounced search, `React.memo` item cards, price sorting, back-to-top scroll. |
+| **MenuScreen** | `useState`, `useEffect`, `useRef`, `useMemo`, `useCallback` | `useTheme`, `useAuth`, `useCart`, `useMenu` | 1.5s simulated async fetch, category chips, 400ms debounced search, `React.memo` item cards, price sorting, back-to-top scroll, instant manager sync. |
 | **CartScreen** | `useState`, `useMemo` | `useCart`, `useTheme` | Pure reducer dispatching, quantity steppers, per-item instructions, promo code validation, tax/service charge memoization. |
 | **OrderSummaryScreen** | `useMemo` | `useCart`, `useOrders`, `useAuth`, `useTheme` | Order financial verification, customer notes review, order dispatch into shared kitchen pipeline. |
 | **OrderTrackingScreen** | `useState`, `useEffect`, `useRef` | `useOrders`, `useTheme` | Realtime elapsed timer counter, 10s-20s-30s automated kitchen status stepper, interval cleanup on unmount. |
@@ -62,7 +62,7 @@ npm start
 > In an interactive restaurant app, state items like `user`, `cartState`, `orders`, and `isDark` are required across deeply nested component trees — from global tab bars and header badges down to individual food cards and modals. Passing these states through props would require threading them through intermediate layout containers (`NavigationContainer ➔ Stack ➔ Tab ➔ Screen ➔ Card`), causing massive boilerplate and brittle component interfaces. Context provides a clean, centralized subscription model.
 >
 > **Drawback of Context**:  
-> Every component consuming a Context via `useContext` will automatically re-render whenever *any* attribute in the Context's provider value changes, even if the component only depends on an unrelated property. For frequently changing states, splitting contexts (e.g. `AuthContext`, `CartContext`, `OrdersContext`, `ThemeContext`) and memoizing values with `useMemo` is essential to prevent unnecessary app-wide re-renders.
+> Every component consuming a Context via `useContext` will automatically re-render whenever *any* attribute in the Context's provider value changes, even if the component only depends on an unrelated property. For frequently changing states, splitting contexts (e.g. `AuthContext`, `CartContext`, `OrdersContext`, `ThemeContext`, `MenuContext`) and memoizing values with `useMemo` is essential to prevent unnecessary app-wide re-renders.
 
 ---
 
@@ -80,15 +80,16 @@ npm start
 
 | # | Action Dispatched | Initial State | Expected Next State | Test Outcome |
 |---|---|---|---|---|
-| **1** | `ADD_ITEM` (New dish: Wagyu Ribeye) | `{ items: [], promoCode: null, discountPercent: 0 }` | `{ items: [{ id: 'm5', name: 'Wagyu', quantity: 1, note: '' }], promoCode: null, discountPercent: 0 }` | **PASS** (Appends fresh item with qty 1) |
-| **2** | `ADD_ITEM` (Existing dish: Wagyu Ribeye) | `{ items: [{ id: 'm5', quantity: 1 }], promoCode: null, discountPercent: 0 }` | `{ items: [{ id: 'm5', quantity: 2 }], promoCode: null, discountPercent: 0 }` | **PASS** (Increments existing quantity without duplicating entry) |
-| **3** | `INCREMENT` (`id: 'm5'`) | `{ items: [{ id: 'm5', quantity: 2 }] }` | `{ items: [{ id: 'm5', quantity: 3 }] }` | **PASS** (Increments specific item quantity) |
-| **4** | `DECREMENT` (`id: 'm5'`, qty: 2) | `{ items: [{ id: 'm5', quantity: 2 }] }` | `{ items: [{ id: 'm5', quantity: 1 }] }` | **PASS** (Decrements item quantity) |
-| **5** | `DECREMENT` (`id: 'm5'`, qty: 1) | `{ items: [{ id: 'm5', quantity: 1 }] }` | `{ items: [] }` | **PASS** (Removes item from cart when reaching 0) |
-| **6** | `UPDATE_NOTE` (`id: 'm5'`, note: 'Medium Rare') | `{ items: [{ id: 'm5', note: '' }] }` | `{ items: [{ id: 'm5', note: 'Medium Rare' }] }` | **PASS** (Updates item instructions immutably) |
+| **1** | `ADD_ITEM` (New dish: Angus Tenderloin) | `{ items: [], promoCode: null, discountPercent: 0 }` | `{ items: [{ id: 'art_m1', name: 'Angus Tenderloin', quantity: 1, note: '' }], promoCode: null, discountPercent: 0 }` | **PASS** (Appends fresh item with qty 1) |
+| **2** | `ADD_ITEM` (Existing dish: Angus Tenderloin) | `{ items: [{ id: 'art_m1', quantity: 1 }], promoCode: null, discountPercent: 0 }` | `{ items: [{ id: 'art_m1', quantity: 2 }], promoCode: null, discountPercent: 0 }` | **PASS** (Increments existing quantity without duplicating entry) |
+| **3** | `INCREMENT` (`id: 'art_m1'`) | `{ items: [{ id: 'art_m1', quantity: 2 }] }` | `{ items: [{ id: 'art_m1', quantity: 3 }] }` | **PASS** (Increments specific item quantity) |
+| **4** | `DECREMENT` (`id: 'art_m1'`, qty: 2) | `{ items: [{ id: 'art_m1', quantity: 2 }] }` | `{ items: [{ id: 'art_m1', quantity: 1 }] }` | **PASS** (Decrements item quantity) |
+| **5** | `DECREMENT` (`id: 'art_m1'`, qty: 1) | `{ items: [{ id: 'art_m1', quantity: 1 }] }` | `{ items: [] }` | **PASS** (Removes item from cart when reaching 0) |
+| **6** | `UPDATE_NOTE` (`id: 'art_m1'`, note: 'Medium Rare') | `{ items: [{ id: 'art_m1', note: '' }] }` | `{ items: [{ id: 'art_m1', note: 'Medium Rare' }] }` | **PASS** (Updates item instructions immutably) |
 | **7** | `APPLY_PROMO` (code: 'WELCOME10') | `{ items: [...], promoCode: null, discountPercent: 0 }` | `{ items: [...], promoCode: 'WELCOME10', discountPercent: 10 }` | **PASS** (Sets promo code and percentage) |
-| **8** | `APPLY_PROMO` (code: 'INVALID_XYZ') | `{ items: [...], promoCode: null, discountPercent: 0 }` | Throws `Error('Promo code "INVALID_XYZ" is invalid or expired.')` | **PASS** (Rejects invalid vouchers with error message) |
-| **9** | `CLEAR_CART` | `{ items: [{...}, {...}], promoCode: 'FEAST20', discountPercent: 20 }` | `{ items: [], promoCode: null, discountPercent: 0 }` | **PASS** (Resets cart to clean initial state) |
+| **8** | `APPLY_PROMO` (code: 'AURA30') | `{ items: [...], promoCode: null, discountPercent: 0 }` | `{ items: [...], promoCode: 'AURA30', discountPercent: 30 }` | **PASS** (Applies AURA VIP voucher discount) |
+| **9** | `APPLY_PROMO` (code: 'INVALID_XYZ') | `{ items: [...], promoCode: null, discountPercent: 0 }` | Throws `Error('Promo code "INVALID_XYZ" is invalid or expired.')` | **PASS** (Rejects invalid vouchers with error message) |
+| **10** | `CLEAR_CART` | `{ items: [{...}, {...}], promoCode: 'FEAST20', discountPercent: 20 }` | `{ items: [], promoCode: null, discountPercent: 0 }` | **PASS** (Resets cart to clean initial state) |
 
 ---
 
@@ -105,7 +106,7 @@ src/
   │   ├── OrdersContext.js          # Live kitchen queue pipeline & state transitions
   │   └── ThemeContext.js           # Light / Dark luxury palette toggle
   ├── data/
-  │   ├── menu.js                   # 16 gourmet dishes across 4 categories
+  │   ├── menu.js                   # 16 handcrafted dishes across 4 culinary sections
   │   ├── reservations.js           # Initial active table bookings
   │   ├── tables.js                 # Tables with seating capacities & locations
   │   └── users.js                  # Customer & Manager credentials
@@ -127,7 +128,7 @@ src/
   │   ├── ProfileScreen.js          # Account info, dark/light switch, sign out
   │   └── ReservationScreen.js      # Booking UI, hourly slots, confirmation modal
   └── theme/
-      └── theme.js                  # Warm culinary amber, 3D shadows, typography
+      └── theme.js                  # Radiant Emerald Teal, Champagne Gold, Obsidian Slate
 ```
 
 ---
